@@ -5,7 +5,17 @@ import { MusicGenreEntity } from 'src/common/entites/musicGenre.entity';
 import { SingleAlbumsEntity } from 'src/common/entites/singleAlbums.entity';
 import { SongEntity } from 'src/common/entites/song.entity';
 import { countryTypeSearch } from 'src/common/enum/country.enum';
+import { singleAlbumType } from 'src/common/enum/singleAlbums.enum';
 import { Repository } from 'typeorm';
+import {
+  CreateBrandDTO,
+  CreateSingleAlbumDTO,
+  CreateSong,
+} from './dto/create-music-playlist.dto';
+import {
+  DeleteSingleAlbumDTO,
+  DeleteSingleSongArrayDTO,
+} from './dto/delete-music-playlist.dto';
 import { GetMusicPlaylistDTO } from './dto/get-music-playlist.dto';
 
 @Injectable()
@@ -128,7 +138,6 @@ export class MusicPlaylistService {
       select: {
         brand: {
           brandName: true,
-          country: true,
         },
         song: {
           songName: true,
@@ -146,5 +155,70 @@ export class MusicPlaylistService {
         },
       },
     });
+  }
+
+  async createBrand(body: CreateBrandDTO) {
+    return await this.brandRepository.save({
+      brandName: body.brandName,
+      country: body.countryType,
+    });
+  }
+  async createSigleAlbum(body: CreateSingleAlbumDTO) {
+    const createSigleAlbum = await this.singleAlbumRepository.save({
+      brand: {
+        id: body.brandID,
+      },
+      name: body.singleAlbumName,
+      typeSingleAlbums: body.typeSingleAlbum,
+    });
+
+    let newSong = [];
+    const musicGenre = new MusicGenreEntity();
+    const singleAlbum = new SingleAlbumsEntity();
+    singleAlbum.id = createSigleAlbum.id;
+    for (let i of body.singleAlbum) {
+      musicGenre.id = i.musicGenre;
+      newSong.push({
+        songName: i.songName,
+        musicGenre: musicGenre.id,
+        singleAlbum: createSigleAlbum.id,
+      });
+    }
+    return await this.songRepository.save(newSong);
+  }
+
+  async createSong(body: CreateSong) {
+    const isSingleAlbum = await this.singleAlbumRepository.findOneBy({
+      id: body.singleAlbumID,
+    });
+    if (
+      isSingleAlbum.typeSingleAlbums === singleAlbumType.SINGLE &&
+      body.song.length > 1
+    ) {
+      throw new BadRequestException('Single should be one!');
+    }
+    const newSong = [];
+    body.song.forEach((x) => {
+      newSong.push({
+        singleAlbum: body.singleAlbumID,
+        songName: x.songName,
+        musicGenre: x.musicGenre,
+      });
+    });
+    return await this.songRepository.save(newSong);
+  }
+
+  async deleteSigleAlbumSong(body: DeleteSingleSongArrayDTO) {
+    const list = Object.values(body.songList);
+    const deleteList = list.map((x) => x.id);
+    return await this.songRepository.delete(deleteList);
+  }
+  async deleteSigleAlbum(param: DeleteSingleAlbumDTO) {
+    await this.songRepository.delete({
+      singleAlbum: await this.singleAlbumRepository.findOneBy({
+        id: param.singleAlbumID,
+      }),
+    });
+    return await this.singleAlbumRepository.delete(param.singleAlbumID);
   }
 }

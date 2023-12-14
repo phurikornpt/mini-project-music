@@ -27,7 +27,7 @@ export class SingleAlbumsEntity {
   @ManyToOne(() => BrandEntity, (brand) => brand.id, { cascade: true })
   @JoinColumn()
   brand: BrandEntity;
-  
+
   @OneToMany(() => SongEntity, (song) => song.singleAlbum)
   song: SongEntity[];
 }

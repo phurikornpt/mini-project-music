@@ -1,4 +1,22 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from 'src/authen/auth.guard';
+import {
+  CreateBrandDTO,
+  CreateSingleAlbumDTO,
+  CreateSong,
+} from './dto/create-music-playlist.dto';
+import {
+  DeleteSingleAlbumDTO,
+  DeleteSingleSongArrayDTO,
+} from './dto/delete-music-playlist.dto';
 import { GetMusicPlaylistDTO } from './dto/get-music-playlist.dto';
 import { MusicPlaylistService } from './music-playlist.service';
 
@@ -26,26 +44,29 @@ export class MusicPlaylistController {
     return this.musicPlaylistService.findByBrandName(param);
   }
 
-  // @Post()
-  // create(@Body() createMusicPlaylistDto: CreateMusicPlaylistDto) {
-  //   return this.musicPlaylistService.create(createMusicPlaylistDto);
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.musicPlaylistService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateMusicPlaylistDto: UpdateMusicPlaylistDto,
-  // ) {
-  //   return this.musicPlaylistService.update(+id, updateMusicPlaylistDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.musicPlaylistService.remove(+id);
-  // }
+  @UseGuards(AuthGuard)
+  @Post('brand')
+  createBrand(@Body() Body: CreateBrandDTO) {
+    return this.musicPlaylistService.createBrand(Body);
+  }
+  @UseGuards(AuthGuard)
+  @Post('sigle-album')
+  createSigleAlbum(@Body() Body: CreateSingleAlbumDTO) {
+    return this.musicPlaylistService.createSigleAlbum(Body);
+  }
+  @UseGuards(AuthGuard)
+  @Post('song')
+  createSong(@Body() Body: CreateSong) {
+    return this.musicPlaylistService.createSong(Body);
+  }
+  @UseGuards(AuthGuard)
+  @Delete('sigle-album-song')
+  deleteSigleAlbumSong(@Body() Body: DeleteSingleSongArrayDTO) {
+    return this.musicPlaylistService.deleteSigleAlbumSong(Body);
+  }
+  @UseGuards(AuthGuard)
+  @Delete('sigle-album/:singleAlbumID')
+  deleteSigleAlbum(@Param() param: DeleteSingleAlbumDTO) {
+    return this.musicPlaylistService.deleteSigleAlbum(param);
+  }
 }

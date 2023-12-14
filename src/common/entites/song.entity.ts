@@ -3,10 +3,8 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BrandEntity } from './brand.entity';
 import { MusicGenreEntity } from './musicGenre.entity';
 import { SingleAlbumsEntity } from './singleAlbums.entity';
 
@@ -22,12 +20,6 @@ export class SongEntity {
   @JoinColumn()
   musicGenre: MusicGenreEntity;
 
-  @ManyToOne(() => SingleAlbumsEntity, (singleAlbum) => singleAlbum.id, {
-    cascade: true,
-  })
+  @ManyToOne(() => SingleAlbumsEntity, (singleAlbum) => singleAlbum.id)
   singleAlbum: SingleAlbumsEntity;
-
-//   @ManyToOne(() => BrandEntity)
-//   @JoinColumn()
-//   brand: BrandEntity;
 }
