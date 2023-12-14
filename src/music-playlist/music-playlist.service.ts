@@ -42,59 +42,19 @@ export class MusicPlaylistService {
         },
       };
     }
-    return await this.songRepository.find({
-      select: {
-        songName: true,
-        musicGenre: { genreName: true },
-        singleAlbum: {
-          name: true,
-          typeSingleAlbums: true,
-          brand: {
-            brandName: true,
-            country: true,
-          },
-        },
-      },
-      relations: {
-        musicGenre: true,
-        singleAlbum: {
-          brand: true,
-        },
-      },
-      where: whereOption,
-    });
+    return this.filterSong(whereOption);
   }
   async findByGenre(param: GetMusicPlaylistDTO) {
     const isHave = await this.musicGenreRepository.findOneBy({
       genreName: param.genreType,
     });
     if (isHave === null) throw new BadRequestException("Don't have this Genre");
-
-    return await this.songRepository.find({
-      select: {
-        songName: true,
-        musicGenre: { genreName: true },
-        singleAlbum: {
-          typeSingleAlbums: true,
-          name: true,
-          brand: {
-            brandName: true,
-            country: true,
-          },
-        },
+    const whereOption = {
+      musicGenre: {
+        genreName: param.genreType,
       },
-      relations: {
-        musicGenre: true,
-        singleAlbum: {
-          brand: true,
-        },
-      },
-      where: {
-        musicGenre: {
-          genreName: param.genreType,
-        },
-      },
-    });
+    };
+    return this.filterSong(whereOption);
   }
 
   async findBySongName(param: GetMusicPlaylistDTO) {
@@ -103,29 +63,10 @@ export class MusicPlaylistService {
     });
     if (isHave === null)
       throw new BadRequestException("Don't have this Song in data base");
-    return await this.songRepository.find({
-      select: {
-        songName: true,
-        musicGenre: { genreName: true },
-        singleAlbum: {
-          name: true,
-          typeSingleAlbums: true,
-          brand: {
-            brandName: true,
-            country: true,
-          },
-        },
-      },
-      relations: {
-        musicGenre: true,
-        singleAlbum: {
-          brand: true,
-        },
-      },
-      where: {
-        songName: param.songName,
-      },
-    });
+    const whereOption = {
+      songName: param.songName,
+    };
+    return this.filterSong(whereOption);
   }
 
   async findByBrandName(param: GetMusicPlaylistDTO) {
@@ -137,9 +78,11 @@ export class MusicPlaylistService {
     return await this.singleAlbumRepository.find({
       select: {
         brand: {
+          id: true,
           brandName: true,
         },
         song: {
+          id: true,
           songName: true,
         },
         typeSingleAlbums: true,
@@ -163,6 +106,7 @@ export class MusicPlaylistService {
       country: body.countryType,
     });
   }
+
   async createSigleAlbum(body: CreateSingleAlbumDTO) {
     const createSigleAlbum = await this.singleAlbumRepository.save({
       brand: {
@@ -220,5 +164,34 @@ export class MusicPlaylistService {
       }),
     });
     return await this.singleAlbumRepository.delete(param.singleAlbumID);
+  }
+
+  async filterSong(whereOption: any) {
+    return await this.songRepository.find({
+      select: {
+        id:true,
+        songName: true,
+        musicGenre: { id: true, genreName: true },
+        singleAlbum: {
+          id: true,
+          name: true,
+          typeSingleAlbums: true,
+          brand: {
+            id: true,
+            brandName: true,
+            country: true,
+          },
+        },
+      },
+      relations: {
+        musicGenre: true,
+        singleAlbum: {
+          brand: true,
+        },
+      },
+      where: {
+        ...whereOption,
+      },
+    });
   }
 }

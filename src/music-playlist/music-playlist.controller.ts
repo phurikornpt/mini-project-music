@@ -44,6 +44,7 @@ export class MusicPlaylistController {
     return this.musicPlaylistService.findByBrandName(param);
   }
 
+  /* ----------------------- Admin Route ----------------------- */
   @UseGuards(AuthGuard)
   @Post('brand')
   createBrand(@Body() Body: CreateBrandDTO) {
